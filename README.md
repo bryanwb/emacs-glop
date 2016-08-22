@@ -2,7 +2,8 @@ Emacs GLOP
 -----------
 
 
-Opens a browser window with the current file or selection highlighted
+Opens a browser window with the current file or selection highlighted in Gitlab's
+web UI.
 
 
 Depends on emacs-gitlab
