@@ -6,7 +6,7 @@
    otherwise returns nil"
   (interactive)
   (with-temp-buffer
-    (let* ((glob-buf-stdout (buffer-name)))
+    (let ((glob-buf-stdout (buffer-name)))
       (if (eq 0 (call-process-shell-command cmd nil glob-buf-stdout))
           (buffer-string)
         nil))))
@@ -23,6 +23,12 @@
     (string-trim (glop-shell-to-string cmd))))
 
 
+(defun glop-get-top-level-dir ()
+  "Find top-level project directory"
+  (let ((cmd (format "%s rev-parse --show-toplevel" (glop-get-git-exec))))
+    (string-trim
+     (glop-shell-to-string cmd))))
+
 (defun glop-get-project-group+name ()
   "Gets the project's gitlab group and name"
   (let ((origin (glop-get-origin)))
@@ -35,19 +41,13 @@
 (defun glop-get-origin ()
   "Get the full git url for the origin remote"
   (interactive)
-  (let ((get-url-cmd (format "%s remote get-url origin" (glop-get-git-exec)))
-    (glop-shell-to-string get-url-cmd))))
+  (let ((get-url-cmd (format "%s remote get-url origin" (glop-get-git-exec))))
+    (glop-shell-to-string get-url-cmd)))
      
 
 (defun glop-get-current-file-relative ()
-  (string-trim 
-   (glop-shell-to-string
-    (format "%s ls-files %s" (glop-get-git-exec) (buffer-file-name)))))
+    (file-relative-name (buffer-file-name) (glop-get-top-level-dir)))
 
-
-(defun iglop-get-line-nums ()
-  (interactive)
-  (message (glop-get-line-nums)))
 
 (defun glop-get-line-nums ()
   "Returns line number(s) if applicable. If region selected,
@@ -66,7 +66,7 @@
          (group+name (glop-get-project-group+name))
          (fname (glop-get-current-file-relative))
          (linenums (glop-get-line-nums)))
-         (format "%s/%s/blob/%s/%s%s" host group+name branch fname linenums)))
+    (format "%s/%s/blob/%s/%s%s" host group+name branch fname linenums)))
 
 
 (defun glop-glap ()
