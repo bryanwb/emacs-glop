@@ -29,6 +29,20 @@
     (string-trim
      (glop-shell-to-string cmd))))
 
+(defun glop-get-relevant-path ()
+  "Return directory path if in dired mode. Return full file path if viewing
+   a file. For all other cases, return the toplevel git directory"
+  (cond
+   ((eq major-mode "dired-mode") (dired-current-directory))
+   ((null buffer-file-name) (glop-get-top-level-dir))
+   (t (buffer-file-name))))
+
+(defun glop-viewing-filep ()
+  "Returns t if currently viewing a file, nil otherwise"
+  (when (not (null buffer-file-name))
+    nil))
+
+
 (defun glop-get-project-group+name ()
   "Gets the project's gitlab group and name"
   (let ((origin (glop-get-origin)))
@@ -45,28 +59,29 @@
     (glop-shell-to-string get-url-cmd)))
      
 
-(defun glop-get-current-file-relative ()
-    (file-relative-name (buffer-file-name) (glop-get-top-level-dir)))
+(defun glop-get-current-path-relative ()
+  (file-relative-name (glop-get-relevant-path) (glop-get-top-level-dir)))
 
 
 (defun glop-get-line-nums ()
   "Returns line number(s) if applicable. If region selected,
    returns range in url form"
-  (if (use-region-p)
-      (format "#L%d-%d"
-              (line-number-at-pos (region-beginning))
-              (line-number-at-pos (region-end)))
-    (format "#L%d" (line-number-at-pos (point)))))
-      
+  (cond ((not (glop-viewing-filep)) "")
+        ((use-region-p)
+         (format "#L%d-%d"
+                 (line-number-at-pos (region-beginning))
+                 (line-number-at-pos (region-end))))
+         (t
+          (format "#L%d" (line-number-at-pos (point))))))
 
 (defun glop-make-url-current-file ()
   "Creates gitlab url for current file"
   (let* ((host gitlab-host)
          (branch (glop-get-branch))
          (group+name (glop-get-project-group+name))
-         (fname (glop-get-current-file-relative))
+         (path (glop-get-current-path-relative))
          (linenums (glop-get-line-nums)))
-    (format "%s/%s/blob/%s/%s%s" host group+name branch fname linenums)))
+    (format "%s/%s/blob/%s/%s%s" host group+name branch path linenums)))
 
 
 (defun glop-glap ()
