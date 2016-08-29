@@ -40,7 +40,7 @@
 (defun glop-viewing-filep ()
   "Returns t if currently viewing a file, nil otherwise"
   (when (not (null buffer-file-name))
-    nil))
+  (when (not (null buffer-file-name)) t))
 
 
 (defun glop-get-project-group+name ()
