@@ -1,6 +1,9 @@
 ;;; provides simple functions to open the current line or
 ;;; selection in gitlab
 
+(require 's)
+(require 'f)
+
 (defun glop-shell-to-string (cmd)
   "Custom shell command execution. Returns stdout if command succeeds,
    otherwise returns nil"
@@ -20,13 +23,13 @@
   "Finds the current branch"
   (let
       ((cmd (format "%s rev-parse --abbrev-ref HEAD" (glop-get-git-exec))))
-    (string-trim (glop-shell-to-string cmd))))
+    (s-trim (glop-shell-to-string cmd))))
 
 
 (defun glop-get-top-level-dir ()
   "Find top-level project directory"
   (let ((cmd (format "%s rev-parse --show-toplevel" (glop-get-git-exec))))
-    (string-trim
+    (s-trim
      (glop-shell-to-string cmd))))
 
 (defun glop-get-relevant-path ()
@@ -39,7 +42,6 @@
 
 (defun glop-viewing-filep ()
   "Returns t if currently viewing a file, nil otherwise"
-  (when (not (null buffer-file-name))
   (when (not (null buffer-file-name)) t))
 
 
@@ -81,7 +83,8 @@
          (group+name (glop-get-project-group+name))
          (path (glop-get-current-path-relative))
          (linenums (glop-get-line-nums)))
-    (format "%s/%s/blob/%s/%s%s" host group+name branch path linenums)))
+    (format "%s/%s" host (f-join group+name "blob" branch
+                                 (format "%s%s" path linenums)))))
 
 
 (defun glop-glap ()
